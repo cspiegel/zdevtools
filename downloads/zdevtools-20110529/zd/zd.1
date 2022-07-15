@@ -1,0 +1,156 @@
+.\" Copyright (c) 2011 Chris Spiegel.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd May 3, 2011
+.Dt ZD 1
+.Os
+.Sh NAME
+.Nm zd
+.Nd disassemble Z\-machine stories
+.Sh SYNOPSIS
+.Nm
+.Op Fl bdDinv
+.Op Fl a Ar address
+.Op Fl A Ar address_file
+.Op Fl w Ar width
+.Ar file
+.Sh DESCRIPTION
+The
+.Nm
+utility disassembles Z\-machine stories, displaying the results in a
+manner similar to the
+.Xr txd 1
+disassembler.  The main difference to
+.Xr txd 1
+is that
+.Xr txd 1
+has knowledge of how Infocom and Inform lay out story files.  As such,
+.Xr txd 1
+can get confused by stories that do not conform to a layout it expects.
+On the other hand,
+.Xr txd 1
+is able to find code (such as action routines) that
+.Nm
+will not detect, because
+.Nm
+only finds code that is reachable directly from the initial program
+counter address.  If you know the address of code that is not reachable
+from the initial program counter address,
+.Nm
+can decode it if you use the
+.Fl a
+or
+.Fl A
+option.
+.Pp
+The following options are available:
+.Bl -tag -width indent
+.It Fl a Ar address
+By default,
+.Nm
+starts disassembling at the address at byte
+.Li 0x06
+in the header, which is the starting location of the program counter.
+The
+.Fl a
+option allows other addresses to be used as a starting location.
+Any number of
+.Fl a
+options can be given, allowing multiple addresses to be examined.
+Addresses must be specified in hexadecimal, with an optional leading
+.Li 0x .
+.Pp
+If the
+.Fl a
+option is used, the story's reported program counter starting address
+will not be examined.  If you wish to include it as well, specify an
+address of 0.
+.It Fl A Ar address_file
+This is identical to the
+.Fl a
+option, except that addresses are read, one per line, from the file
+.Ar address_file .
+If
+.Ar address_file
+is a single dash
+.Pq Sq Fl ,
+read from standard input.
+.It Fl b
+Disable buffered output.  This is intended to be used with the
+.Fl v
+option, to ensure that in case of abnormal program termination (such as
+a segfault), the last-processed instruction will be seen.  Such abnormal
+terminations are the result of bugs in
+.Nm ,
+so this is primarily an option to aid in development and debugging.
+.It Fl d
+In addition to the instructions, print out a hexadecimal representation
+of the constituent bytes of each instruction.  See also the
+.Fl D
+option.
+.It Fl D
+By default, the
+.Fl d
+option will not dump the constituent bytes of strings, because these
+tend to be very long.  The
+.Fl D
+option instructs
+.Nm
+to dump the strings as well as instructions.
+.It Fl i
+If an unknown opcode is found or an attempt is made to jump outside of
+memory,
+.Nm
+will exit with an error message.  This option instructs it to continue
+to attempt to disassemble.  All bets are off at this point, although in
+some cases
+.Nm
+will continue to disassemble correctly.
+.It Fl n
+When printing strings, use a
+.Li ^
+character to represent a newline instead
+of an actual newline characer.
+.It Fl v
+.Nm
+runs in two phases.  First, it scans through a story file, decoding
+everything that appears to be an instruction.  Next, it displays the
+decoded instructions in order.  This second phase is what's normally
+displayed.  The
+.Fl v
+option also displays the first phase.
+.It Fl w Ar width
+When the
+.Fl d
+option is selected, the display of bytes is wrapped at
+.Ar width
+bytes per line, so the screen is less cluttered.  If no
+.Fl w
+option is given, a default of 8 is used.
+.El
+.Sh AUTHORS
+.An "Chris Spiegel" Aq cspiegel@gmail.com
+.Sh SEE ALSO
+.Xr txd 1 ,
+.Xr za 1
