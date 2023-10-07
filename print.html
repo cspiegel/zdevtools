@@ -1,0 +1,662 @@
+<!DOCTYPE HTML>
+<html lang="en" class="ayu" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>ZDevtools</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "ayu";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="assembler.html"><strong aria-hidden="true">2.</strong> Assembler README</a></li><li class="chapter-item expanded "><a href="visual.html"><strong aria-hidden="true">3.</strong> Visual disassembly</a></li><li class="chapter-item expanded "><a href="man.html"><strong aria-hidden="true">4.</strong> Man pages</a></li><li class="chapter-item expanded "><a href="downloads.html"><strong aria-hidden="true">5.</strong> Downloads</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">ZDevtools</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <p>ZDevtools consists of an assembler and disassembler for the Z-machine. They were originally developed to support the implementation of the <a href="https://bocfel.org/">Bocfel Z-machine interpreter</a>. These tools are not particularly useful in the general case, and people will generally fare better with programs like Inform, ZILF, ZAPF, and txd. One major feature that these do include, beyond what is available elsewhere, is the <a href="./visual.html">visual disassembly mode</a>.</p>
+<p>ZDevtools can be downloaded from the <a href="downloads.html">downloads page</a>.</p>
+<p>Issues can be reported <a href="https://github.com/cspiegel/zdevtools/issues">here</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><p>It is assumed that the user has a good working knowledge of the Z-machine; this
+document is not meant as a tutorial, nor is this assembler meant to be useful
+for anything beyond the testing of interpreters.</p>
+<p>All Z-machine opcodes for all Z-machine versions are implemented. However, there
+are some major features of the Z-machine that are not currently implemented.
+These include (but surely are not limited to) objects, the dictionary, and
+abbreviations.</p>
+<p>Unicode tables are supported, to some degree. If non-ZSCII characters are
+encountered in strings, they are added to the Unicode table. Note that a new,
+custom Unicode table will always be created: even if you only use characters
+present in the Z-Machine’s standard Unicode table, a new table with only the
+characters you use will be created. This may be changed in the future, but will
+require significant work.</p>
+<p>Alternatively, you can provide your own Unicode table. See the <code>unicode_table</code>
+directive below.</p>
+<p>Because this is a single-pass assembler, the writing of the Unicode table is
+delayed till the end of the file, and written at the end of the output; this is
+due to the fact that the size of the Unicode table won’t be known till assembly
+is done. However, the Unicode table must be at a 16-bit address, so if your
+program extends beyond that, assembly will fail. You can get around this with
+the –preallocate-unicode-table flag. This will preallocate space near the
+beginning of the file for up to 97 Unicode characters (the max). If you have
+fewer than 97, this will waste some space, but at least it will assemble.</p>
+<p>There is no direct access to the Unicode table, but if you use
+UTF-8 characters in a string, they will automatically be added to the Unicode
+table.</p>
+<p>Diagnostics are generally useful, but might sometimes be cryptic. If all else
+fails, look at the source code. This assembler is quite rough around the edges.</p>
+<p>Source files must be encoded in UTF-8. If you’re only using ASCII, that will be
+fine.</p>
+<p>In this file, the term “C-style constant” refers to a number as written in C: a
+leading 0x means the number is hexadecimal, otherwise, decimal. Octal and binary
+constants are not supported.</p>
+<p>Opcode names are identical to those given in §15 of the Z-machine standard.
+Unlike Inform, opcodes are not prefixed with @.</p>
+<p>Comments are introduced with the # character and extend to the end of the line.
+Comments must begin in the first column of the line.</p>
+<p>The <code>align</code> directive, when given no arguments, forces routine alignment,
+ensuring that the next instruction is on a 2-, 4-, or 8-byte boundardy,
+depending on the Z-Machine version (1-3, 4-7, and 8, respectively). When given a
+C-style constant as an argument, align to that value instead:</p>
+<pre><code>align
+align 0x10
+</code></pre>
+<p>A label is introduced with the <code>label</code> directive:</p>
+<pre><code>label LabelName
+</code></pre>
+<p>An aligned label (which is the same as calling <code>align</code> then <code>label</code>) has the
+same syntax:</p>
+<pre><code>alabel ALabelName
+</code></pre>
+<p>A routine is introduced with the <code>routine</code> directive, and includes the number of
+locals the routune has (this cannot be omitted even if there are no locals):</p>
+<pre><code>routine RoutineName 5
+</code></pre>
+<p>If a version 1-4 story file is being created, initial values can be given to
+each local variable by listing their values after the number of locals. The
+following gives the value 1 to L00, 2 to L01, 3 to L02 and, because values were
+omitted, L03 and L04 are set to zero:</p>
+<p>routine RoutineName 5 1 2 3</p>
+<p>An arbitrary byte sequence is introduced with the <code>byte</code> directive, each byte
+specified as a C-style constant, separated by space:</p>
+<pre><code>byte 0xfa 0xff 0xfa
+</code></pre>
+<p>The <code>seek</code> directive inserts the specified number of zeros into the output
+file; the argument is a C-style constant:</p>
+<pre><code>seek 0x100
+</code></pre>
+<p>The <code>seeknop</code> directive is identical to <code>seek</code>, except instead of zeros, <code>nop</code>
+instructions are inserted.</p>
+<p>The <code>seekabs</code> directive inserts enough zeros to ensure the next instruction is
+located at the specified offset. This can be used to place something (e.g. a
+string) at a specific location in memory. This will fail if an offset is given
+that would come before the current location in the file.</p>
+<pre><code>seekabs 0x1000
+string &quot;This string is now at location 0x1000 in memory&quot;
+</code></pre>
+<p>The <code>seeknopabs</code> directive is identical to <code>seekabs</code>, except instead of zeros,
+<code>nop</code> instructions are inserted.</p>
+<p>The <code>status</code> directive, available only in V3 stories, indicates whether this is
+a “score game” or a “time game”. The syntax is:</p>
+<pre><code>status score
+status time
+</code></pre>
+<p>The <code>status</code> directive may be specified at any point in the source file any
+number of times. The last takes precedence. The default game type is a score
+game. Although objects are not supported by this assembler, object 1 is created
+so that interpreters can properly display the status bar. This object has the
+name “Default object” and no properties.</p>
+<p>The ’unicode_table` directive inserts the Unicode table at the current location.
+It takes either a collection of space-separated numbers or a string. A Unicode
+table will be inserted at the current location, and that location will be
+written to the header extension table. The syntax is one of:</p>
+<pre><code>unicode_table &quot;æč&quot;
+unicode_table 0xe6 0x10d
+</code></pre>
+<p>This table will entirely replace the default table provided by the assembler.</p>
+<p>The opcodes <code>print</code> and <code>print_ret</code> take a quoted string as their argument; to
+include literal quotation characters, they must be escaped with a \ character as
+in C. To include a literal backslash, it must be escaped (\). To include a
+newline, use the ^ character, as in Inform. A literal ^ cannot currently be
+encoded. Example:</p>
+<pre><code>print &quot;\&quot;Try\&quot; our hot dog's^Try \&quot;our\&quot; hot dog's^&quot;
+</code></pre>
+<p>The directive <code>string</code> is treated in the same manner. This directive will
+directly insert an encoded string, suitable for use with <code>print_addr</code> or
+<code>print_paddr</code>. Note that <code>print_paddr</code> requires strings to be aligned due to the
+fact that it expectes a packed address, so <code>alabel</code> should be used with
+<code>print_paddr</code> instead of just <code>label</code>:</p>
+<pre><code>label s1
+string &quot;print_addr^&quot;
+alabel s2
+string &quot;print_paddr^&quot;
+start
+print_addr s1
+print_paddr s2
+quit
+</code></pre>
+<p><code>print_char</code> can take literal characters (surrounted by single quotes) as well
+as any other expected value. Characters must be valid printable ZSCII, which is
+to say characters in the range 32-126.</p>
+<pre><code>print_char 'A'
+new_line
+store G00 65
+print_char G00
+new_line
+</code></pre>
+<p>The <code>aread</code> and <code>sread</code> opcodes are just called <code>read</code> in this assembler.</p>
+<p>If you are in a routine, local variables can be accessed as <code>L00</code>, <code>L01</code>, …
+<code>L15</code>. The numbers are decimal.</p>
+<p>Global variables are available in <code>G00</code>, <code>G01</code>, … <code>Gef</code>. The numbers are hex.</p>
+<p>The stack pointer is called <code>sp</code> or <code>SP</code>.</p>
+<p>For opcodes that require a store, use <code>-&gt;</code> to indicate that:</p>
+<pre><code>call_1s Routine -&gt; sp
+</code></pre>
+<p>Literal numbers are stored appropriately, meaning as a small constant for values
+that fit into 8 bits, a large constant otherwise. Only values that will fit
+into a 16-bit integer (signed or unsigned) are allowed, meaning -32768 to 65535.
+Numbers are parsed as C-style constants.</p>
+<p>The <code>start</code> directive must be used once, before any opcodes are used. Until
+<code>start</code> is seen, the assembler writes to dynamic memory. Once <code>start</code> is
+encountered, static memory begins, and the starting program counter is set to
+that address. The reason for this is chiefly to allow arrays to be placed in
+dynamic memory:</p>
+<pre><code># Combine label and seek to produce arrays.
+label Array
+seek 100
+# Execution will begin here.
+start
+storew Array 0 0x1234
+</code></pre>
+<p>In V6, the starting point of the story must be a routine, not an instruction.
+To accomplish this, <code>start</code> has a special syntax for V6, which looks identical
+to the syntax for <code>routine</code>:</p>
+<pre><code>start main 0
+</code></pre>
+<p>This causes a routine called <code>main</code> with zero locals to be created, and uses
+this as the entry point. These arguments are allowed in non-V6 games, but are
+ignored.</p>
+<p>Labels are used to give names to addresses so they can be referred to in
+instructions. However, there are some opcodes (such as <code>print_paddr</code>) which take
+a packed address. As such, for opcodes which require packed addresses, the
+assembler will automatically pack labels.</p>
+<pre><code># No packing necessary
+print_addr label_name
+
+# This is packed automatically
+print_paddr label_name
+</code></pre>
+<p>So these opcodes will be passed different values. Note that the name of a
+routine is a label as well, and will be packed or not depending on the opcode.
+This also means you can pass a routine label to <code>print_paddr</code>, but you probably
+shouldn’t.</p>
+<p>In addition to packed targets, branching has its own method of encoding
+addresses. You cannot simply pass a label to a branch:</p>
+<pre><code># Invalid
+je 0 0 label_name
+</code></pre>
+<p>This is because of the complexity of branch. There are several questions to ask
+about a branch:</p>
+<ul>
+<li>Is this a short (6-bit) or long (14-bit branch)?</li>
+<li>Is this inverted, i.e. does false cause the branch to be taken?</li>
+<li>Instead of branching to a label, is this returning true/false?</li>
+</ul>
+<p>There are 8 possible combinations, which is why a simple label is not
+sufficient. For that reason, sigils are used to determine how the branch is to
+be made. These are:</p>
+<ul>
+<li><code>?label_name</code>: 14-bit branch to label if true</li>
+<li><code>?~label_name</code>: 14-bit branch to label if false</li>
+<li><code>%label_name</code>: 6-bit branch to label if true</li>
+<li><code>%~label_name</code>: 6-bit branch to label if false</li>
+<li><code>?0</code>: return false if true</li>
+<li><code>?~0</code>: return false if false</li>
+<li><code>?1</code>: return true if true</li>
+<li><code>?~1</code>: return true if false</li>
+</ul>
+<p>So, for example:</p>
+<pre><code>je 0 0 ?label_name
+je 0 0 ?~0
+</code></pre>
+<p>For both the 6- and 14-bit branches, the assembler will tell you if you’re
+trying to jump too far, but it won’t rewrite a 6-bit branch into a 14-bit one.</p>
+<p>If you are using an opcode which takes both a store and a branch (<code>get_sibling</code>,
+<code>get_child</code>, or <code>scan_table</code>), you must put the store before the branch, e.g.:</p>
+<pre><code>get_sibling G00 -&gt; sp ?1
+</code></pre>
+<p>Labels cannot be used with arbitrary opcodes since they don’t make sense in most
+contexts. However, if you do want to pass an address to an opcode that wouldn’t
+normally take an address, you can prefix the label to indicate your intent:</p>
+<pre><code># This passes an unpacked label, so you could print the address of an instruction
+label label_name
+print_num &amp;label_name
+
+# This passes a packed label
+print_num !label_name
+</code></pre>
+<p>Note that routine and string offsets (for V6 and V7 games) are not supported, so
+the packing of strings and routines at the top of memory (beyond 256K) will
+fail. This should not be an issue unless you deliberately seek this far before
+creating a string or routine.</p>
+<p>Here is a full working sample:</p>
+<pre><code>start
+
+call_1n main
+quit
+
+routine main 0
+je 0 0 ?Equal
+print &quot;This will not be seen.^&quot;
+label Equal
+
+jump Past
+print &quot;This will not be seen either.^&quot;
+label Past
+
+print &quot;The main routine is: &quot;
+print_num &amp;main
+new_line
+print &quot;Packed, the main routine is: &quot;
+print_num !main
+new_line
+print &quot;The Equal label is: &quot;
+print_num &amp;Equal
+new_line
+
+quit
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><p>By default, the zd disassembler displays output in much the same way that the txd disassembler does. However, it also includes a visual mode which can be enabled with the <strong>-v</strong> flag.</p>
+<p>Visual mode diagrams each instruction down to the bit level, allowing you to see exactly how instructions are assembled.</p>
+<p>Examples:</p>
+<pre><code>┌────────────────────────────────────────────────────────────────────┐
+│2c6: print - 0OP (main routine 2c6)                                 │
+└────────────────────────────────────────────────────────────────────┘
+ ┌─ Short form
+ │   ┌─ Operand type: Omitted
+ │   │     ┌─ @print
+┌┴┐ ┌┴┐ ┌──┴──┐
+1 0 1 1 0 0 1 0 
+
+┌─ Words follow
+│     ┌─ Shift A1
+│     │         ┌─ Z
+│     │         │         ┌─ o
+│ ┌───┴───┐ ┌───┴───┐ ┌───┴───┐
+0 0 0 1 0 0 1 1 1 1 1 1 0 1 0 0 
+
+┌─ Last word
+│     ┌─ r
+│     │         ┌─ k
+│     │         │         ┌─ Shift A2
+│ ┌───┴───┐ ┌───┴───┐ ┌───┴───┐
+1 1 0 1 1 1 1 0 0 0 0 0 0 1 0 1 
+
+Full decoded text: Zork
+┌────────────────────────────────────────────────────────────────────┐
+│2cb: get_child - 1OP                                                │
+└────────────────────────────────────────────────────────────────────┘
+ ┌─ Short form
+ │   ┌─ Operand type: Variable
+ │   │     ┌─ @get_child
+┌┴┐ ┌┴┐ ┌──┴──┐
+1 0 1 0 0 0 1 0 
+
+Operand: 11111111 (Gef)
+
+Store: 00010101 (21) -&gt; G05
+
+┌─ Branch if true
+│ ┌─ 14-bit branch
+│ │              ┌─ +27 (2e8)
+│ │ ┌────────────┴────────────┐
+1 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 
+┌────────────────────────────────────────────────────────────────────┐
+│2d0: add - 2OP                                                      │
+└────────────────────────────────────────────────────────────────────┘
+ ┌─ Variable form
+ │  ┌─ 2OP
+ │  │     ┌─ @add
+┌┴┐ │ ┌───┴───┐
+1 1 0 1 0 1 0 0 
+
+Operand types:
+ ┌─ Small constant
+ │   ┌─ Large constant
+ │   │   ┌─ Omitted
+ │   │   │   ┌─ Omitted
+┌┴┐ ┌┴┐ ┌┴┐ ┌┴┐
+0 1 0 0 1 1 1 1 
+
+Operand 0: 00001010 (10)
+Operand 1: 00000111 11010000 (2000)
+
+Store: 00000110 (6) -&gt; L05
+┌────────────────────────────────────────────────────────────────────┐
+│2d6: call_vs2 - VAR                                                 │
+└────────────────────────────────────────────────────────────────────┘
+ ┌─ Variable form
+ │  ┌─ VAR
+ │  │     ┌─ @call_vs2
+┌┴┐ │ ┌───┴───┐
+1 1 1 0 1 1 0 0 
+
+Operand types:
+ ┌─ Large constant
+ │   ┌─ Variable
+ │   │   ┌─ Variable
+ │   │   │   ┌─ Small constant
+┌┴┐ ┌┴┐ ┌┴┐ ┌┴┐
+0 0 1 0 1 0 0 1 
+
+Operand types:
+ ┌─ Small constant
+ │   ┌─ Small constant
+ │   │   ┌─ Small constant
+ │   │   │   ┌─ Small constant
+┌┴┐ ┌┴┐ ┌┴┐ ┌┴┐
+0 1 0 1 0 1 0 1 
+
+Operand 0: 00000000 01011000 (88)
+Operand 1: 00000001 (L00)
+Operand 2: 00010000 (G00)
+Operand 3: 00000001 (1)
+Operand 4: 00000010 (2)
+Operand 5: 00000011 (3)
+Operand 6: 00000100 (4)
+Operand 7: 00000101 (5)
+
+Call: 2c0
+
+Store: 00000000 (0) -&gt; -(SP)
+┌────────────────────────────────────────────────────────────────────┐
+│2e3: save_undo - EXT                                                │
+└────────────────────────────────────────────────────────────────────┘
+       ┌─ Extended form
+       │               ┌─ @save_undo
+┌──────┴──────┐ ┌──────┴──────┐
+1 0 1 1 1 1 1 0 0 0 0 0 1 0 0 1 
+
+Operand types:
+ ┌─ Omitted
+ │   ┌─ Omitted
+ │   │   ┌─ Omitted
+ │   │   │   ┌─ Omitted
+┌┴┐ ┌┴┐ ┌┴┐ ┌┴┐
+1 1 1 1 1 1 1 1 
+
+Store: 00000000 (0) -&gt; -(SP)
+┌────────────────────────────────────────────────────────────────────┐
+│2e7: quit - 0OP                                                     │
+└────────────────────────────────────────────────────────────────────┘
+ ┌─ Short form
+ │   ┌─ Operand type: Omitted
+ │   │     ┌─ @quit
+┌┴┐ ┌┴┐ ┌──┴──┐
+1 0 1 1 1 0 1 0
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><p>The assembler man page is <a href="./za.html">available here</a>.</p>
+<p>The disassembler man page is <a href="./zd.html">available here</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><p>The source code for ZDevtools is provided here. A Rust compiler is required in order to build versions 2.0.0 and later.</p>
+<p>Latest version: 2.1.2</p>
+<h3 id="zdevtools-212"><a class="header" href="#zdevtools-212">ZDevtools 2.1.2</a></h3>
+<p><a href="downloads/zdevtools-2.1.2.tar.gz">zdevtools-2.1.2.tar.gz</a></p>
+<p>Release date: October  7, 2023</p>
+<p>Release notes:</p>
+<ul>
+<li><strong>[za]</strong> Seeking at the end of the file now works.</li>
+<li><strong>[za]</strong> Some opcodes were improperly specified, and are now (hopefully) fixed: <code>pull</code>, <code>set_cursor</code>, <code>sound_effect</code>, <code>check_unicode</code>, and <code>mouse_window</code>.</li>
+</ul>
+<h3 id="zdevtools-211"><a class="header" href="#zdevtools-211">ZDevtools 2.1.1</a></h3>
+<p><a href="downloads/zdevtools-2.1.1.tar.gz">zdevtools-2.1.1.tar.gz</a></p>
+<p>Release date: September 23, 2023</p>
+<p>Release notes:</p>
+<ul>
+<li><strong>[za]</strong> Fix bug where a preallocated Unicode table interfered with the default object.</li>
+</ul>
+<h3 id="zdevtools-210"><a class="header" href="#zdevtools-210">ZDevtools 2.1.0</a></h3>
+<p><a href="downloads/zdevtools-2.1.0.tar.gz">zdevtools-2.1.0.tar.gz</a></p>
+<p>Release date: September 14, 2023</p>
+<p>Release notes:</p>
+<ul>
+<li><strong>[za]</strong> Support preallocating a Unicode table for files larger than 64K.</li>
+<li><strong>[za]</strong> New <code>unicode_table</code> directive to allow custom Unicode tables.</li>
+<li><strong>[za]</strong> The assembler can display a suggested unicode_table directive based on discovered Unicode characters.</li>
+<li><strong>[za]</strong> New seekabs and seeknopabs directives.</li>
+<li><strong>[zd]</strong> The maximum number of instructions to decode can now be provided.</li>
+<li><strong>[zd]</strong> An arbitrary starting offset for disassembly can now be provided.</li>
+<li><strong>[zd]</strong> Bytestrings no longer have a quit instruction implicitly appended.</li>
+<li><strong>[zd]</strong> Opcodes which take indirect variable references are now properly displayed.</li>
+</ul>
+<h3 id="zdevtools-202"><a class="header" href="#zdevtools-202">ZDevtools 2.0.2</a></h3>
+<p><a href="downloads/zdevtools-2.0.2.tar.gz">zdevtools-2.0.2.tar.gz</a></p>
+<p>Release date: February 25, 2022</p>
+<p>Release notes:</p>
+<ul>
+<li>Include license information.</li>
+</ul>
+<h3 id="zdevtools-201"><a class="header" href="#zdevtools-201">ZDevtools 2.0.1</a></h3>
+<p><a href="downloads/zdevtools-2.0.1.tar.gz">zdevtools-2.0.1.tar.gz</a></p>
+<p>Release date: February 25, 2022</p>
+<p>Release notes:</p>
+<ul>
+<li><strong>[zd]</strong> Fix disassembly of instructions which contain both a branch and a store.</li>
+</ul>
+<h3 id="zdevtools-200"><a class="header" href="#zdevtools-200">ZDevtools 2.0.0</a></h3>
+<p><a href="downloads/zdevtools-2.0.0.tar.gz">zdevtools-2.0.0.tar.gz</a></p>
+<p>Release date: February 25, 2022</p>
+<p>Release notes:</p>
+<ul>
+<li>This is a complete rewrite which broadly feels the same as the fist release, but which has several small differences.</li>
+<li><strong>[zd]</strong> A visual disassembly mode has been added.</li>
+</ul>
+<h3 id="zdevtools-20110529"><a class="header" href="#zdevtools-20110529">ZDevtools 20110529</a></h3>
+<p><a href="downloads/zdevtools-20110529.tar.gz">zdevtools-20110529.tar.gz</a></p>
+<p>Release date: May 29, 2011</p>
+<p>Release notes:</p>
+<ul>
+<li>Initial release.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

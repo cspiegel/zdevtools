@@ -1,0 +1,8 @@
+The man page documents the useful parts of the disassembler.
+
+The included interp.rb Ruby script can be used to extract action and preaction
+routine addresses from the output of infodump -g, allowing zd to disassemble
+these routines (it cannot find them on its own).  The resulting file can be
+passed to zd's -A flag.  For example:
+
+infodump -g zork1.z3 | ./interp.rb | ./zd -a 0 -A - zork1.z3

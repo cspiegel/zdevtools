@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<!-- This is an automatically generated file.  Do not edit.
+   Copyright (c) 2022 Chris Spiegel.
+   All rights reserved.
+  
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+  
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+   OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+   OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+   -->
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="mandoc.css" type="text/css" media="all"/>
+  <title>ZA(1)</title>
+</head>
+<body>
+<table class="head">
+  <tr>
+    <td class="head-ltitle">ZA(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">ZA(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<p class="Pp"><code class="Nm">za</code> &#x2014; <span class="Nd">Z-machine
+    assembler</span></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">za</code></td>
+    <td>[<code class="Fl">-o</code> <var class="Ar">outfile</var>]
+      [<code class="Fl">-r</code> <var class="Ar">release</var>]
+      [<code class="Fl">-s</code> <var class="Ar">serial</var>]
+      [<code class="Fl">-z</code> <var class="Ar">z-machine version</var>]
+      <var class="Ar">source</var></td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<p class="Pp">The <code class="Nm">za</code> utility assembles Z-machine
+    stories.</p>
+<p class="Pp">The following options are available:</p>
+<dl class="Bl-tag">
+  <dt id="o"><a class="permalink" href="#o"><code class="Fl">-o</code></a>
+    <var class="Ar">outfile</var></dt>
+  <dd>Specify the filename of the resulting story file. The default is
+      <span class="Pa">out.zX</span>, where &#x201C;X&#x201D; is the Z-machine
+      version.</dd>
+  <dt id="p"><a class="permalink" href="#p"><code class="Fl">-p</code></a></dt>
+  <dd>Preallocate enough space for any Unicode table near the beginning of the
+      file. By default a Unicode table (if needed) is written near the end of
+      the file, but if the file extends beyond 64K, the Unicode table will be
+      out of bounds, as it's required to be a 16-bit address. You can get around
+      this by preallocating space near the beginning of the file with the caveat
+      that it will always allocate the maximum amount of space, regardless of
+      how large your Unicode table winds up being.</dd>
+  <dt id="r"><a class="permalink" href="#r"><code class="Fl">-r</code></a>
+    <var class="Ar">release</var></dt>
+  <dd>Set the release number. This must be a value between 0 and 65535. The
+      default is <var class="Ar">1</var>.</dd>
+  <dt id="s"><a class="permalink" href="#s"><code class="Fl">-s</code></a>
+    <var class="Ar">serial</var></dt>
+  <dd>Set the serial number. This must be a string of six characters. The
+      default is the current date in the traditional Z-machine format.</dd>
+  <dt id="suggest-unicode-table"><a class="permalink" href="#suggest-unicode-table"><code class="Fl">--suggest-unicode-table</code></a></dt>
+  <dd><code class="Nm">za</code> builds a collection of Unicode characters it
+      encounters in order to create a Unicode table, if necessary. Since this is
+      a single-pass assembler, the Unicode table can't be written until after
+      the whole file is read, meaning it must be placed in memory
+      <a class="permalink" href="#after"><i class="Em" id="after">after</i></a>
+      all instructions. However, the Unicode table must be at a 16-bit address,
+      and instructions can extend beyond that. The <code class="Fl">-p</code>
+      option will preallocate space at the beginning of the file, but must
+      allocate enough space for the largest possible table. To avoid this, you
+      can create your own table wherever you want with the
+      <b class="Sy">unicode_table</b> directive, but that requires you to know
+      which Unicode characters you will be using. The
+      <code class="Fl">--suggest-unicode-table</code> will, after assembly,
+      print out a suggested <b class="Sy">unicode_table</b> directive that
+      includes all Unicode characters used in the program. This allows you to
+      include a more compact Unicode table at a 16-bit address.</dd>
+  <dt id="z"><a class="permalink" href="#z"><code class="Fl">-z</code></a>
+    <var class="Ar">zversion</var></dt>
+  <dd>Set the Z-machine version. Versions 1-8 are supported. The default is
+      <var class="Ar">8</var>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<p class="Pp"><a class="Xr">zd(1)</a></p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="AUTHORS"><a class="permalink" href="#AUTHORS">AUTHORS</a></h1>
+<p class="Pp"><span class="An">Chris Spiegel</span>
+    &#x27E8;cspiegel@gmail.com&#x27E9;</p>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">September 14, 2023</td>
+    <td class="foot-os"></td>
+  </tr>
+</table>
+</body>
+</html>

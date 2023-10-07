@@ -1,0 +1,246 @@
+It is assumed that the user has a good working knowledge of the Z-machine; this
+document is not meant as a tutorial, nor is this assembler meant to be useful
+for anything beyond the testing of interpreters.
+
+All Z-machine instructions for all Z-machine versions are implemented.  However,
+there are some major features of the Z-machine that are not currently
+implemented.  These include (but surely are not limited to) objects, the
+dictionary, and abbreviations.  There is no direct access to the Unicode table,
+but if you use UTF-8 characters in a string, they will automatically be added to
+the Unicode table.
+
+Diagnostics are generally useful, but might sometimes be cryptic.  If all else
+fails, look at the source code.  This assembler is quite rough around the edges.
+
+Source files must be encoded in UTF-8.  If you're only using ASCII, that will be
+fine.
+
+In this file, the term "C-style constant" refers to a number as written in C: a
+leading 0x means the number is hexadecimal, a leading 0 means octal, otherwise,
+decimal.
+
+Instruction names are identical to those given in §15 of the Z-machine standard.
+Unlike Inform, instructions are not prefixed with @.
+
+Comments are introduced with the # character and extend to the end of the line.
+
+A label is introduced with the "label" directive:
+label LabelName
+
+An aligned label (which is the same as calling "align" then "label") has the
+same syntax:
+alabel ALabelName
+
+A routine is introduced with the "routine" directive, and includes the number of
+locals the routune has (this cannot be omitted even if there are no locals):
+routune RoutineName 5
+
+If a version 1-4 story file is being created, initial values can be given to
+each local variable by listing their values after the number of locals.  The
+following gives the value 1 to L00, 2 to L01, 3 to L02 and, because values were
+omitted, L03 and L04 are set to zero:
+routune RoutineName 5 1 2 3
+
+An arbitrary byte sequence is introduced with the "byte" directive, each byte
+specified in hex, separated by space:
+bytes fa ff fa
+
+The "align" directive, when given no arguments, forces routine alignment,
+ensuring that the next instruction is on a 2-, 4-, or 8-byte boundardy,
+depending on the Z-Machine version (1-3, 4-7, and 8, respectively).  When given
+a C-style constant as an argument, align to that value instead:
+align
+align 0x10
+
+The "include" directive causes the contents of another file to be included for
+assemby, analogous to #include in C (recursion is not detected):
+include anotherfile
+
+The "seek" directive inserts the specified number of zeroes into the output
+file; the argument is a C-style constant:
+seek 0x100
+
+The "seeknop" directive is identical to "seek", except instead of zeroes, nop
+instructions are inserted.
+
+The "status" directive, available only in V3 stories, indicates whether this is
+a "score game" or a "time game".  The syntax is:
+status score # or
+status time
+
+The "status" directive may be specified at any point in the source file any
+number of times.  The last takes precedence.  The default game type is a score
+game.  Although objects are not supported by this assembler, object 1 is created
+so that interpreters can properly display the status bar.  This object has the
+name "Default object" and no properties.
+
+The instructions "print" and "print_ret" take a string as their argument; this
+should not be enclosed in quotes unless you want to print out quotes.  However,
+a ^ character does indicate newline as in Inform:
+print "Try" our hot dog's^Try "our" hot dog's^
+
+In order to allow strings to start with space, the two printing instructions are
+tokenized slightly different from other instructions.  Rather than skipping all
+whicespace after the instruction name, a single space is skipped; and this must
+be a space character, not a tab.  So these could be thought of as the "print "
+and "print_ret " instructions, in a sense:
+print  Foo
+
+This will print " Foo" because there are two spaces; one to separate the
+arguments from the instruction name, and then one before the 'F' of "Foo".
+
+The directive "string " is treated in the same manner.  This directive will
+directly insert an encoded string, suitable for use with print_paddr.
+
+The instruction "print_char" cannot be used with literal characters, but instead
+must be supplied with a ZSCII value:
+print_char 65
+
+The "aread" and "sread" opcodes are just called "read" in this assembler.
+
+If you are in a routine, local variables can be accessed as L00, L01, ... L15.
+The numbers are decimal.
+
+Global variables are available in G00, G01, ... Gef.  The numbers are hex.
+
+The stack pointer is called sp or SP.
+
+For instructions that require a store, use -> to indicate that:
+call_1s Routine -> sp
+
+Literal numbers are stored appropriately, meaning as a small constant for values
+that fit into 8 bits, a large constant otherwise.  Only values that will fit
+into a 16-bit integer (signed or unsigned) are allowed, meaning -32768 to 65535.
+Numbers are parsed as C-style constants.
+
+The "start" directive must be used once, before any opcodes are used.  Until
+"start" is seen, the assembler writes to dynamic memory.  Once "start" is
+encountered, static memory begins, and the starting program counter is set to
+that address.  The reason for this is chiefly to allow arrays to be placed in
+dynamic memory:
+# Combine label and seek to produce arrays.
+label Array
+seek 100
+# Execution will begin here.
+start
+storew &Array 0 0x1234
+
+In V6, the starting point of the story must be a routine, not an instruction.
+To accomplish this, "start" has a special syntax for V6, which looks identical
+to the syntax for "routine":
+start main 0
+
+This causes a routine called "main" with zero locals to be created, and uses
+this as the entry point.  These arguments are allowed in non-V6 games, but are
+ignored.
+
+
+Labels in the Z-Machine are slightly convoluted.  One might think that a label
+could be both branched to and called, but this is not exactly the case.  When
+using a call instruction, the address of the routine is packed, meaning (in V8)
+that it is divided by 8 and stored in a 16-bit word.  When branching, the
+address is stored either as a 14-bit signed offset or a 6-bit unsigned offset.
+And, finally, the @jump instruction takes a 16-bit signed offset.
+
+Above it was noted that routune labels are produced differently than "normal"
+labels; this is because routunes start with a byte that specifies the number of
+local variables, and this byte needs to be jumped past when calling the routine.
+Branching to a routine label would make no sense, just as calling a normal label
+would make no sense.
+
+How to encode a label depends entirely on how it's going to be used: routine
+call (or print_paddr), branch, or jump.
+
+The type of a label name could be inferred from how it was defined, but due to a
+design choice in this assembler, when branching to a label, a prefix is
+required.  So as not to deviate from Inform's syntax too much, this prefix is a
+question mark:
+label Label
+je 0 0 ?Label
+
+This will branch to the label Label if 0 is equal to 0.  As with Inform a prefix
+of ?~ will invert the test.  This stores a 14-bit offset.  By using % instead of
+?, an unsigned 6-bit offset can be chosen, which means one fewer byte used in
+the output.  Of course, this also means that you can only jump about 63 bytes
+forward.  The assembler will tell you if you're trying to jump too far.
+
+Branching instructions can, instead of branching when the test passes, return
+true or false from the current routine.  This can be accomplished with ?1 and
+?0, respectively.
+
+When a packed address is desired (e.g. when you are trying to call a routine),
+an exclamation point should be used:
+routine Routine 0
+quit
+
+call_1n !Routine
+
+This syntax should also be used when a packed string is required for use with
+the print_paddr opcode:
+print_paddr !String
+quit
+
+alabel String
+string This is a string.
+
+Note that routine and string offsets (for V6 and V7 games) are not supported, so
+the packing of strings and routines at the top of memory (beyond 256K) will
+fail.  This should not be an issue unless you deliberately seek this far before
+creating a string or routine.
+
+The actual address of a label can be retrieved with the ampersand prefix.  This
+means either an unpacked routine, or when used with a label, the absolute
+address of the label, not an offset.  So to print the address of an instruction:
+label Label
+print_num &Label
+
+Or to use an array (as seen in the "start" directive above):
+label Array
+seek 100
+start
+storew &Array 0 0x1234
+
+Note that it is up to you to use the proper prefix with labels.  The assembler
+will cheerfully let you call a label, or jump to a routine, neither of which
+makes sense.  So the following assembles, but is nonsensical:
+label Label
+call_1n !Label
+routine Routine 0
+je 0 0 ?Routine
+
+
+How should the jump instruction be used, since it is neither a branch nor a
+routine call?  This instruction is special-cased by pretending that it is a
+branch instruction.  Before this nefarious lie can cause problems, however, the
+assembler steps and and writes a proper jump offset.  So:
+label Label
+jump ?Label
+
+
+Here is a full working sample:
+
+start
+
+call_1n !main
+quit
+
+routine main 0
+je 0 0 ?Equal
+print This will not be seen.^
+label Equal
+
+jump ?Past
+print This will not be seen either.^
+label Past
+
+print The main routine is: 
+print_num &main
+new_line
+print Packed, the main routine is: 
+print_num !main
+new_line
+print The Equal label is: 
+print_num &Equal
+new_line
+
+quit
