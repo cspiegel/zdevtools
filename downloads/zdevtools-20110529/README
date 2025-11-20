@@ -1,0 +1,10 @@
+To build, gmake is required, as is a compiler that supports C99, or at least the
+subset of C99 that these tools make use of.  Most modern compilers should work.
+
+A POSIX environment is also required.  These should port rather easily to other
+environments.  The most onerous requirement is probably that seeking beyond the
+end of a file is expected to work and create a hole that will be interpreted as
+zeroes.  Patches to support non-POSIX environments are welcome.
+
+Chris Spiegel
+cspiegel@gmail.com
